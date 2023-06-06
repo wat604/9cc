@@ -48,6 +48,7 @@ struct Node {
 Node *expr();
 Node *mul();
 Node *primary();
+Node *unary();
 
 Node *new_node(NodeKind kind) {
     Node *node = calloc(1, sizeof(Node)); // callocはメモリの確保と0で初期化。mallocは初期化がない。
@@ -181,18 +182,27 @@ Node *expr() {
     }
 }
 
-// mul = primary ( '*' primary | '/' primary )*
+// mul = unary ( '*' unary | '/' unary )*
 Node *mul() {
-    Node *node = primary();
+    Node *node = unary();
 
     for (;;) {
         if (consume('*'))
-            node = new_binary(ND_MUL, node, primary());
+            node = new_binary(ND_MUL, node, unary());
         else if (consume('/'))
-            node = new_binary(ND_DIV, node, primary());
+            node = new_binary(ND_DIV, node, unary());
         else
             return node;
     }
+}
+
+// unary = ("+" | "-")? primary
+Node *unary() {
+    if (consume('+'))
+        return primary();
+    if (consume('-'))
+        return new_binary(ND_SUB, new_num(0), primary());
+    return primary();
 }
 
 // primary = num | '(' primary ')'
@@ -207,6 +217,10 @@ Node *primary() {
     // そうでなければ数値のはず
     return new_num(expect_number());
 }
+
+
+// ASTを作るときに文法の左辺ごとにfunctionを作る
+// functionはNodeを返す
 
 void gen(Node *node) {
     if (node->kind == ND_NUM) {
