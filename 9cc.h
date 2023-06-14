@@ -8,6 +8,7 @@
 // TokenKind型の作成
 typedef enum {
     TK_RESERVED,    // 記号
+    TK_IDENT,       // 識別子
     TK_NUM,         // 整数トークン
     TK_EOF,         // 入力の終わりを表すトークン
 } TokenKind;
@@ -60,6 +61,7 @@ Node *unary();
 
 Token *tokenize(char *user_input);
 void gen(Node *node);
+void error_at(char *loc, char *fmt, ...);
 
 // グローバル変数の宣言
 // 現在着目しているトークン
