@@ -15,6 +15,19 @@
 // unary      = ("+" | "-")? primary
 // primary    = num | ident | "(" expr ")"
 
+
+typedef struct LVar LVar;
+struct LVar {
+    LVar *next; // 次の変数かNULL
+    char *name; // 変数の名前
+    int len;    // 名前の長さ
+    int offset; // RBPからのオフセット
+};
+
+// ローカル変数 連結リストの先頭のポインタ
+LVar *locals;
+
+
 Node *code[100];
 
 Node *new_node(NodeKind kind) {
@@ -87,6 +100,14 @@ bool at_eof() {
     return token->kind == TK_EOF;
 }
 
+// 変数を名前で検索する。見つからなかった場合はNULLを返す。
+LVar *find_lvar(Token *tok) {
+    for (LVar *var = locals; var; var = var->next)
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+            return var;
+    return NULL;
+}
+
 
 //////////////////////////////////
 // AST grammers
@@ -106,6 +127,11 @@ Node *unary();
 Node *primary();
 
 void program() {
+    LVar head;
+    head.next = NULL;
+    head.offset = 0;
+    locals = &head;
+
     int i = 0;
     while (!at_eof()) {
         code[i++] = stmt();
@@ -203,9 +229,23 @@ Node *primary() {
         return node;
     }
 
+    // 変数の場合
     Token *tok = consume_ident();
     if (tok) {
-        Node *node = new_lvar(tok->str[0]);
+        Node *node = new_node(ND_LVAR);
+
+        LVar *lvar = find_lvar(tok);
+        if (lvar) {
+            node->offset = lvar->offset;
+        } else {
+            lvar = calloc(1, sizeof(LVar));
+            lvar->next = locals;
+            lvar->name = tok->str;
+            lvar->len = tok->len;
+            lvar->offset = locals->offset + 8;
+            node->offset = lvar->offset;
+            locals = lvar;
+        }
         return node;
     }
 

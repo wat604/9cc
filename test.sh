@@ -45,4 +45,8 @@ assert 4 "x = 3 + 1;"
 assert 8 "x = y = (z = 2 * 2) * 2;"
 # assert 1 "x - 2 = 1 + 1;"
 
+assert 1 "foo = 1;"
+assert 5 "bar = 2 + 3;"
+assert 3 "foo = 1; bar = 2; foo + bar;"
+
 echo OK

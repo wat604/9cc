@@ -2,6 +2,7 @@
 
 static char *user_input;
 
+
 static Token *new_token(TokenKind kind, Token *cur, char *str);
 
 // 入力文字列をトークナイズしてそれを返す
@@ -58,9 +59,15 @@ Token *tokenize(char *p) {
         }
 
         // variables
+        // a-zで構成される文字列をトークンに追加
         if ('a' <= *p && *p <= 'z') {
-            cur = new_token(TK_IDENT, cur, p++);
-            cur->len = 1;
+            char *start;
+            start = p;
+            while ('a' <= *p && *p <= 'z') {
+                p++;
+            }
+            cur = new_token(TK_IDENT, cur, start);
+            cur->len = p - start;
             continue;
         }
 
