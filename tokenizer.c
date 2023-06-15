@@ -65,6 +65,15 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        // return
+        // returnで始まり、変数でない場合
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            cur = new_token(TK_RETURN, cur, p);
+            cur->len = 6;
+            p += 6;
+            continue;
+        }
+
         // variables
         // 文字列をトークンに追加
         // 変数の文字列は"a-zA-Z_"で始まり、先頭以外はそれに加え数値もOK

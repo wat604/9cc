@@ -5,7 +5,7 @@
 //
 
 // program    = stmt*
-// stmt       = expr ";"
+// stmt       = expr ";" | "return" ";"
 // expr       = assign
 // assign     = equality ("=" assign)?
 // equality   = relational ("==" relational | "!=" relational)*
@@ -76,6 +76,13 @@ Token *consume_ident() {
     return current_token;
 }
 
+bool consume_kind(TokenKind kind) {
+    if (token->kind != kind)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンが期待している記号の時には、トークンを１つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char *op) {
@@ -140,7 +147,15 @@ void program() {
 } 
 
 Node *stmt() {
-    Node *node = expr();
+    Node *node;
+
+    if (consume_kind(TK_RETURN)) {
+        node = new_node(ND_RETURN);
+        node->lhs = expr();
+    } else {
+        node = expr();
+    }
+
     expect(";");
     return node;
 }
