@@ -5,6 +5,13 @@ static char *user_input;
 
 static Token *new_token(TokenKind kind, Token *cur, char *str);
 
+int is_alnum(char c) {
+    return  ('a' <= c && c <= 'z') ||
+            ('A' <= c && c <= 'Z') ||
+            ('0' <= c && c <= '9') ||
+            (c == '_'); 
+}
+
 // 入力文字列をトークナイズしてそれを返す
 Token *tokenize(char *p) {
     user_input = p;
@@ -59,11 +66,14 @@ Token *tokenize(char *p) {
         }
 
         // variables
-        // a-zで構成される文字列をトークンに追加
-        if ('a' <= *p && *p <= 'z') {
+        // 文字列をトークンに追加
+        // 変数の文字列は"a-zA-Z_"で始まり、先頭以外はそれに加え数値もOK
+        if (('a' <= *p && *p <= 'z') ||
+            ('A' <= *p && *p <= 'Z') ||
+            (*p == '_')) {
             char *start;
             start = p;
-            while ('a' <= *p && *p <= 'z') {
+            while (is_alnum(*p)) {
                 p++;
             }
             cur = new_token(TK_IDENT, cur, start);
@@ -76,6 +86,7 @@ Token *tokenize(char *p) {
             cur->val = strtol(p, &p, 10);
             continue;
         }
+
         error_at(p, "トークナイズできません");
 
     }
