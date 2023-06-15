@@ -2,12 +2,11 @@
 
 static char *user_input;
 
-
 static Token *new_token(TokenKind kind, Token *cur, char *str);
 
 // 入力文字列をトークナイズしてそれを返す
-Token *tokenize(char *user_input) {
-    char *p = user_input;
+Token *tokenize(char *p) {
+    user_input = p;
     Token head;
     head.next = NULL;
     Token *cur = &head;
@@ -32,16 +31,35 @@ Token *tokenize(char *user_input) {
             continue;
         }
 
-        // handle == !=
-        if (strchr("=!", *p)) {
+        // handle == != =
+        if (*p == '=') {
+            if(*(p + 1) == '=') {
+                cur = new_token(TK_RESERVED, cur, p);
+                p = p + 2;
+                cur->len = 2;
+                continue;
+            } else {
+                cur = new_token(TK_RESERVED, cur, p++);
+                cur->len = 1;
+                continue;
+            }
+        }
+        if (*p == '!') {
             cur = new_token(TK_RESERVED, cur, p);
             p = p + 2;
             cur->len = 2;
             continue;
         }
 
-        if (strchr("+-*/()", *p)) {
+        if (strchr("+-*/();", *p)) {
             cur = new_token(TK_RESERVED, cur, p++); // p++の返り値は++する前のポインタ。charの値ではない。
+            cur->len = 1;
+            continue;
+        }
+
+        // variables
+        if ('a' <= *p && *p <= 'z') {
+            cur = new_token(TK_IDENT, cur, p++);
             cur->len = 1;
             continue;
         }
@@ -71,6 +89,16 @@ void error_at(char *loc, char *fmt, ...) {
     fprintf(stderr, "%s\n", user_input);
     fprintf(stderr, "%*s", pos, " "); // pos個の空白を出力
     fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+void error(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+
+    fprintf(stderr, "%s\n", user_input);
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);

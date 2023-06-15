@@ -1,5 +1,22 @@
 #include "9cc.h"
 
+//
+// grammer
+//
+
+// program    = stmt*
+// stmt       = expr ";"
+// expr       = assign
+// assign     = equality ("=" assign)?
+// equality   = relational ("==" relational | "!=" relational)*
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+// add        = mul ("+" mul | "-" mul)*
+// mul        = unary ("*" unary | "/" unary)*
+// unary      = ("+" | "-")? primary
+// primary    = num | ident | "(" expr ")"
+
+Node *code[100];
+
 Node *new_node(NodeKind kind) {
     Node *node = calloc(1, sizeof(Node)); // callocはメモリの確保と0で初期化。mallocは初期化がない。
     node->kind = kind;
@@ -19,6 +36,12 @@ Node *new_num(int val) {
     return node;
 }
 
+// local variable
+Node *new_lvar(char c) {
+    Node *node = new_node(ND_LVAR);
+    node->offset = (c - 'a' + 1) * 8;
+    return node;
+}
 
 
 // 次のトークンが期待している記号の時には、トークンを１つ読み進めて
@@ -30,6 +53,14 @@ bool consume(char *op) {
         return false;
     token = token->next; 
     return true;
+}
+
+Token *consume_ident() {
+    if (token->kind != TK_IDENT)
+        return false;
+    Token *current_token = token;
+    token = token->next;
+    return current_token;
 }
 
 // 次のトークンが期待している記号の時には、トークンを１つ読み進める。
@@ -64,13 +95,42 @@ bool at_eof() {
 // ASTを作るときに文法の左辺ごとにfunctionを作る
 // functionはNodeを返す
 
+Node *stmt();
+Node *expr();
+Node *assign();
+Node *equality();
+Node *rational();
+Node *add();
+Node *mul();
+Node *unary();
+Node *primary();
 
-Node *expr() {
-    Node *node = equality();
+void program() {
+    int i = 0;
+    while (!at_eof()) {
+        code[i++] = stmt();
+    }
+    code[i] = NULL;
+} 
+
+Node *stmt() {
+    Node *node = expr();
+    expect(";");
     return node;
 }
 
-// equality   = relational ("==" relational | "!=" relational)*
+Node *expr() {
+    Node *node = assign();
+    return node;
+}
+
+Node *assign() {
+    Node *node = equality();
+    if(consume("="))
+        node = new_binary(ND_ASSIGN, node, assign());
+    return node;
+}
+
 Node *equality() {
     Node *node = rational();
 
@@ -84,7 +144,6 @@ Node *equality() {
     }
 }
 
-// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 Node *rational() {
     Node *node = add();
 
@@ -102,7 +161,6 @@ Node *rational() {
     } 
 }
 
-// add = mul ( '+' mul | '-' mul )*
 Node *add() {
     Node *node = mul();
 
@@ -116,7 +174,6 @@ Node *add() {
     }
 }
 
-// mul = unary ( '*' unary | '/' unary )*
 Node *mul() {
     Node *node = unary();
 
@@ -130,7 +187,6 @@ Node *mul() {
     }
 }
 
-// unary = ("+" | "-")? primary
 Node *unary() {
     if (consume("+"))
         return primary();
@@ -139,12 +195,17 @@ Node *unary() {
     return primary();
 }
 
-// primary = num | '(' primary ')'
 Node *primary() {
     // 次のトークンが"("なら、 "(" expr ")"のはず
     if (consume("(")) {
         Node *node = expr();
         expect(")");
+        return node;
+    }
+
+    Token *tok = consume_ident();
+    if (tok) {
+        Node *node = new_lvar(tok->str[0]);
         return node;
     }
 

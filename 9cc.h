@@ -15,15 +15,17 @@ typedef enum {
 
 // 抽象構文木のノードの種類
 typedef enum {
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
-    ND_EQ,  // ==
-    ND_NE,  // !=
-    ND_LT,  // <
-    ND_LE,  // <=
-    ND_NUM, // 整数
+    ND_ADD,     // +
+    ND_SUB,     // -
+    ND_MUL,     // *
+    ND_DIV,     // /
+    ND_EQ,      // ==
+    ND_NE,      // !=
+    ND_LT,      // <
+    ND_LE,      // <=
+    ND_ASSIGN,  // =
+    ND_LVAR,    // ローカル変数
+    ND_NUM,     // 整数
 } NodeKind;
 
 // 変数定義の時に
@@ -48,21 +50,22 @@ struct Node {
     Node *lhs;
     Node *rhs;
     int val;        // kindがND_NUMの場合のみ使う
+    int offset;     // kindがND_LVARの場合のみ使う
 };
 
 // プロトタイプ宣言
-Node *expr();
-Node *equality();
-Node *rational();
-Node *add();
-Node *mul();
-Node *primary();
-Node *unary();
+void program();
+
 
 Token *tokenize(char *user_input);
 void gen(Node *node);
 void error_at(char *loc, char *fmt, ...);
+void error(char *fmt, ...);
 
 // グローバル変数の宣言
 // 現在着目しているトークン
 extern Token *token;
+
+// stmt nodeを保存しておくグローバル変数
+extern Node *code[100];
+
