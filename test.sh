@@ -49,12 +49,18 @@ assert 1 "foo = 1;"
 assert 5 "bar = 2 + 3;"
 assert 3 "foo = 1; bar = 2; foo + bar;"
 assert 1 "_A1z = 1;"
+
 assert 1 "return 1; 2; 3;"
 assert 2 "1; return 2; 3;"
 assert 3 "1; 2; return 3;"
+
 assert 2 "x = 1; y = 0; if (x == 1) y = 2; return y;"
 assert 0 "x = 1; y = 0; if (x == 0) y = 2; return y;"
 assert 2 "x = 1; if (x == 1) y = 2; else y = 3; return y;"
 assert 3 "x = 1; if (x == 0) y = 2; else y = 3; return y;"
+assert 0 "x = 1; y = 2; z = 3; if (x == 1) if (y == 2) z = 0; return z;"
+assert 3 "x = 1; y = 2; z = 3; if (x == 1) if (y == 0) z = 0; return z;"
+
+assert 10 "i = 0; while (i < 10) i = i + 1; return i;"
 
 echo OK

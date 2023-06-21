@@ -178,6 +178,17 @@ Node *stmt() {
         return node;
     }
 
+    // while-expr-
+    //  `----stmt(true)--
+    if (consume_kind(TK_WHILE)) {
+        expect("(");
+        node = new_node(ND_WHILE);
+        node->lhs = expr();
+        expect(")");
+        node->rhs = stmt();
+        return node;
+    }
+
     if (consume_kind(TK_RETURN)) {
         node = new_node(ND_RETURN);
         node->lhs = expr();

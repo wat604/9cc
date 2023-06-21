@@ -18,6 +18,8 @@ static void gen_lval(Node *node) {
 }
 
 void gen_stmt(Node *node) {
+    int current_label_index;
+
     switch (node->kind) {
     case ND_EXPR_STMT:
         gen_expr(node->lhs);
@@ -36,19 +38,19 @@ void gen_stmt(Node *node) {
         printf("    ret\n");
         return;
     case ND_IF:
-        int current_label_index_if = label_index++;
+        current_label_index = label_index++;
         printf("    # start if statement\n");
         printf("    # evaluate conditional expr\n");
         gen_expr(node->lhs);
         printf("    pop rax\n");
         printf("    cmp rax, 0\n");
-        printf("    je .Lend%d\n", current_label_index_if);
-        printf("    # true case%d\n", current_label_index_if);
+        printf("    je .Lend%d\n", current_label_index);
+        printf("    # true case%d\n", current_label_index);
         gen_stmt(node->rhs);
-        printf(".Lend%d:\n", current_label_index_if);
+        printf(".Lend%d:\n", current_label_index);
         return;
     case ND_IF_ELSE:
-        int current_label_index = label_index++;
+        current_label_index = label_index++;
         printf("    # start if statement\n");
         printf("    # evaluate condition expr\n");
         gen_expr(node->lhs);
@@ -64,7 +66,19 @@ void gen_stmt(Node *node) {
         gen_stmt(node->rhs->rhs);
         printf(".Lend%d:\n", current_label_index);
         return;
-
+    case ND_WHILE:
+        current_label_index = label_index++;
+        printf("    # start while statement\n");
+        printf("    # evaluate condition expr\n");
+        printf(".Lbegin%d:\n", current_label_index);
+        gen_expr(node->lhs);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lend%d\n", current_label_index);
+        gen_stmt(node->rhs);
+        printf("    jmp .Lbegin%d\n", current_label_index);
+        printf(".Lend%d:\n", current_label_index);
+        return;
     }
 }
 
