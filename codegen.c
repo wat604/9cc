@@ -2,19 +2,73 @@
 
 int label_index = 0;
 
-void gen_lval(Node *node) {
+static void gen_expr(Node *node);
+
+static void gen_lval(Node *node) {
     if (node->kind != ND_LVAR)
         error("代入の左辺値が変数ではありません");
 
     // ベースポインタの値をraxに移す
     // 変数のアドレスをrax-offsetで計算
     // スタックトップに変数のアドレスをプッシュ
+    printf("    # push an address of lvar\n");
     printf("    mov rax, rbp\n");
     printf("    sub rax, %d\n", node->offset);
     printf("    push rax\n");
 }
 
-void gen(Node *node) {
+void gen_stmt(Node *node) {
+    switch (node->kind) {
+    case ND_EXPR_STMT:
+        gen_expr(node->lhs);
+        // 式の評価結果としてスタックに一つの値が残っている
+        // はずなので、スタックが溢れないようにポップしておく
+        printf("    pop rax\n");
+        return;
+    case ND_RETURN:
+        printf("    # start return statement\n");
+        gen_expr(node->lhs);
+        printf("    pop rax\n");
+        printf("    mov rsp, rbp\n");
+        printf("    pop rbp\n");
+        // retはスタックをポップしてそのアドレスに飛ぶ
+        // この時点でスタックトップは実行中の関数のリターンアドレス
+        printf("    ret\n");
+        return;
+    case ND_IF:
+        int current_label_index_if = label_index++;
+        printf("    # start if statement\n");
+        printf("    # evaluate conditional expr\n");
+        gen_expr(node->lhs);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lend%d\n", current_label_index_if);
+        printf("    # true case%d\n", current_label_index_if);
+        gen_stmt(node->rhs);
+        printf(".Lend%d:\n", current_label_index_if);
+        return;
+    case ND_IF_ELSE:
+        int current_label_index = label_index++;
+        printf("    # start if statement\n");
+        printf("    # evaluate condition expr\n");
+        gen_expr(node->lhs);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lelse%d\n", current_label_index);
+        // elseのNodeは直接飛ばして読む
+        printf("    # true case%d\n", current_label_index);
+        gen_stmt(node->rhs->lhs);
+        printf("    jmp .Lend%d\n", current_label_index);
+        printf(".Lelse%d:\n", current_label_index);
+        printf("    # else case%d\n", current_label_index);
+        gen_stmt(node->rhs->rhs);
+        printf(".Lend%d:\n", current_label_index);
+        return;
+
+    }
+}
+
+static void gen_expr(Node *node) {
     switch (node->kind) {
     // 数値の場合はここで処理。
     // LHSとRHSは存在しないのでreturn。
@@ -25,16 +79,18 @@ void gen(Node *node) {
         gen_lval(node);
         // スタックトップに変数のアドレスの値をプッシュ
         // 変数の値を展開してる
+        printf("    # push a value of lvar\n");
         printf("    pop rax\n");
         printf("    mov rax, [rax]\n");
         printf("    push rax\n");
         return;
     case ND_ASSIGN:
+        printf("    # start assingnment\n");
         // 左辺の変数のアドレスをプッシュ
         // 左辺がLVARでなかった場合のエラー出力もここで
         gen_lval(node->lhs);
         // 右辺を評価
-        gen(node->rhs);
+        gen_expr(node->rhs);
 
         printf("    pop rdi\n");
         printf("    pop rax\n");
@@ -42,40 +98,12 @@ void gen(Node *node) {
         printf("    mov [rax], rdi\n");
         printf("    push rdi\n");
         return;
-    case ND_RETURN:
-        gen(node->lhs);
-        printf("    pop rax\n");
-        printf("    mov rsp, rbp\n");
-        printf("    pop rbp\n");
-        printf("    ret\n");
-        return;
-    case ND_IF:
-        int current_label_index_if = label_index++;
-        gen(node->lhs);
-        printf("    pop rax\n");
-        printf("    cmp rax, 0\n");
-        printf("    je .Lend%d\n", current_label_index_if);
-        gen(node->rhs);
-        printf(".Lend%d:\n", current_label_index_if);
-        return;
-    case ND_IF_ELSE:
-        int current_label_index = label_index++;
-        gen(node->lhs);
-        printf("    pop rax\n");
-        printf("    cmp rax, 0\n");
-        printf("    je .Lelse%d\n", current_label_index);
-        // elseのNodeは直接飛ばして読む
-        gen(node->rhs->lhs);
-        printf("    je .Lend%d\n", current_label_index);
-        printf(".Lelse%d:\n", current_label_index);
-        gen(node->rhs->rhs);
-        printf(".Lend%d:\n", current_label_index);
-        return;
+
     }
 
     // 以下exprの演算処理の複数項のため再帰している
-    gen(node->lhs);
-    gen(node->rhs);
+    gen_expr(node->lhs);
+    gen_expr(node->rhs);
 
     printf("    pop rdi\n"); // rhsの結果をpop
     printf("    pop rax\n"); // lhsの結果をpop

@@ -21,22 +21,20 @@ int main(int argc, char **argv) {
     printf("main:\n");
 
     // プロローグ
-    // 変数26個分の領域を確保する
+    // 変数個分の領域を確保する
+    printf("    # prologue\n");
     printf("    push rbp\n");
     printf("    mov rbp, rsp\n");
     printf("    sub rsp, %d\n", locals->offset);
 
     // 先頭の式から順にコード生成
     for (int i = 0; code[i]; i++) {
-        gen(code[i]);
-
-        // 式の評価結果としてスタックに一つの値が残っている
-        // はずなので、スタックが溢れないようにポップしておく
-        printf("    pop rax\n");
+        gen_stmt(code[i]);
     }
 
     // エピローグ
     // 最後の式の結果がRAXに残っているのでそれが返り値になる
+    printf("    # epilogue\n");
     printf("    mov rsp, rbp\n");
     printf("    pop rbp\n");
     printf("    ret\n");

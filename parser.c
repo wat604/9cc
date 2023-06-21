@@ -182,7 +182,8 @@ Node *stmt() {
         node = new_node(ND_RETURN);
         node->lhs = expr();
     } else {
-        node = expr();
+        node = new_node(ND_EXPR_STMT);
+        node->lhs = expr();
     }
 
     expect(";");

@@ -31,6 +31,7 @@ typedef enum {
     ND_ASSIGN,  // =
     ND_LVAR,    // ローカル変数
     ND_NUM,     // 整数
+    ND_EXPR_STMT, // expr
     ND_RETURN,  // return
     ND_IF,      // if
     ND_IF_ELSE, // if ... else
@@ -69,7 +70,7 @@ void program();
 
 
 Token *tokenize(char *user_input);
-void gen(Node *node);
+void gen_stmt(Node *node);
 void error_at(char *loc, char *fmt, ...);
 void error(char *fmt, ...);
 
