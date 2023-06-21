@@ -5,7 +5,11 @@
 //
 
 // program    = stmt*
-// stmt       = expr ";" | "return" ";"
+// stmt       = expr ";" 
+        // | "if" "(" expr ")" stmt ("else" stmt)?
+        // | "while" "(" expr ")" stmt
+        // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+        // | "return" ";"
 // expr       = assign
 // assign     = equality ("=" assign)?
 // equality   = relational ("==" relational | "!=" relational)*
@@ -16,17 +20,7 @@
 // primary    = num | ident | "(" expr ")"
 
 
-typedef struct LVar LVar;
-struct LVar {
-    LVar *next; // 次の変数かNULL
-    char *name; // 変数の名前
-    int len;    // 名前の長さ
-    int offset; // RBPからのオフセット
-};
-
-// ローカル変数 連結リストの先頭のポインタ
 LVar *locals;
-
 
 Node *code[100];
 
@@ -85,6 +79,8 @@ bool consume_kind(TokenKind kind) {
 
 // 次のトークンが期待している記号の時には、トークンを１つ読み進める。
 // それ以外の場合にはエラーを報告する。
+// consumeは来るかどうかわからないとき。ifの条件式で使う
+// expectは必ず来るとわかっているとき。トークンを進める＆文法チェック
 void expect(char *op) {
     if (token->kind != TK_RESERVED || 
         strlen(op) != token->len ||
@@ -101,6 +97,13 @@ int expect_number() {
     int val = token->val;
     token = token->next;
     return val;
+}
+
+void expect_kind(TokenKind kind, char *keyword) {
+    if (token->kind != kind) {
+        error_at(token->str, "'%s'ではありません。", keyword);
+    }
+    token = token->next;
 }
 
 bool at_eof() {
@@ -149,6 +152,32 @@ void program() {
 Node *stmt() {
     Node *node;
 
+    // if_else-expr-
+    //  `------else-stmt(true)-
+    //         `----stmt(else)-
+    // or
+    // if-expr-
+    //  `-stmt(true)--
+    if (consume_kind(TK_IF)) {
+        expect("(");
+        node = new_node(ND_IF);
+        node->lhs = expr();
+        expect(")");
+        Node *node_true = stmt();
+
+        // 次のstmtを読んでelseかどうか判定する
+        // 今のところstmtは1文で終わる前提
+        if(consume_kind(TK_ELSE)) {
+            node->kind = ND_IF_ELSE;
+            Node *node_else;
+            node_else = new_binary(ND_ELSE, node_true, stmt());
+            node->rhs = node_else;
+        } else {
+            node->rhs = node_true;
+        }
+        return node;
+    }
+
     if (consume_kind(TK_RETURN)) {
         node = new_node(ND_RETURN);
         node->lhs = expr();
@@ -167,6 +196,7 @@ Node *expr() {
 
 Node *assign() {
     Node *node = equality();
+    // 右辺がある場合は右辺が深くなるようになっている
     if(consume("="))
         node = new_binary(ND_ASSIGN, node, assign());
     return node;

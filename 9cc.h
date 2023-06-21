@@ -11,6 +11,10 @@ typedef enum {
     TK_IDENT,       // 識別子
     TK_NUM,         // 整数トークン
     TK_RETURN,      // return
+    TK_IF,          // if
+    TK_ELSE,        // else
+    TK_WHILE,       // while
+    TK_FOR,         // for
     TK_EOF,         // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -28,6 +32,11 @@ typedef enum {
     ND_LVAR,    // ローカル変数
     ND_NUM,     // 整数
     ND_RETURN,  // return
+    ND_IF,      // if
+    ND_IF_ELSE, // if ... else
+    ND_ELSE,    // else
+    ND_WHILE,   // while
+    ND_FOR,     // for
 } NodeKind;
 
 // 変数定義の時に
@@ -71,3 +80,13 @@ extern Token *token;
 // stmt nodeを保存しておくグローバル変数
 extern Node *code[100];
 
+typedef struct LVar LVar;
+struct LVar {
+    LVar *next; // 次の変数かNULL
+    char *name; // 変数の名前
+    int len;    // 名前の長さ
+    int offset; // RBPからのオフセット
+};
+
+// ローカル変数 連結リストの先頭のポインタ
+extern LVar *locals;

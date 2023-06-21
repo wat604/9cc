@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+int label_index = 0;
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR)
         error("代入の左辺値が変数ではありません");
@@ -14,6 +16,8 @@ void gen_lval(Node *node) {
 
 void gen(Node *node) {
     switch (node->kind) {
+    // 数値の場合はここで処理。
+    // LHSとRHSは存在しないのでreturn。
     case ND_NUM:
         printf("    push %d\n", node->val);
         return;
@@ -45,9 +49,31 @@ void gen(Node *node) {
         printf("    pop rbp\n");
         printf("    ret\n");
         return;
+    case ND_IF:
+        int current_label_index_if = label_index++;
+        gen(node->lhs);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lend%d\n", current_label_index_if);
+        gen(node->rhs);
+        printf(".Lend%d:\n", current_label_index_if);
+        return;
+    case ND_IF_ELSE:
+        int current_label_index = label_index++;
+        gen(node->lhs);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lelse%d\n", current_label_index);
+        // elseのNodeは直接飛ばして読む
+        gen(node->rhs->lhs);
+        printf("    je .Lend%d\n", current_label_index);
+        printf(".Lelse%d:\n", current_label_index);
+        gen(node->rhs->rhs);
+        printf(".Lend%d:\n", current_label_index);
+        return;
     }
 
-
+    // 以下exprの演算処理の複数項のため再帰している
     gen(node->lhs);
     gen(node->rhs);
 
