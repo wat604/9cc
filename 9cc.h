@@ -64,10 +64,11 @@ struct Node {
     int val;        // kindがND_NUMの場合のみ使う
     int offset;     // kindがND_LVARの場合のみ使う
 
-    // "for" statement
+    // "if", "while" and "for" statement
     Node *cond;
     Node *init;
     Node *inc;
+    Node *els;
 };
 
 // プロトタイプ宣言

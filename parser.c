@@ -5,11 +5,12 @@
 //
 
 // program    = stmt*
-// stmt       = expr ";" 
+// stmt       = expr_stmt 
         // | "if" "(" expr ")" stmt ("else" stmt)?
         // | "while" "(" expr ")" stmt
         // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
         // | "return" ";"
+// expr_stmt  = expr ";"
 // expr       = assign
 // assign     = equality ("=" assign)?
 // equality   = relational ("==" relational | "!=" relational)*
@@ -152,40 +153,28 @@ void program() {
 Node *stmt() {
     Node *node;
 
-    // if_else-expr-
-    //  `------else-stmt(true)-
-    //         `----stmt(else)-
-    // or
-    // if-expr-
-    //  `-stmt(true)--
     if (consume_kind(TK_IF)) {
         node = new_node(ND_IF);
         expect("(");
-        node->lhs = expr();
+        node->cond = expr();
         expect(")");
-        Node *node_true = stmt();
+        node->lhs = stmt();
 
         // 次のstmtを読んでelseかどうか判定する
         // 今のところstmtは1文で終わる前提
         if(consume_kind(TK_ELSE)) {
             node->kind = ND_IF_ELSE;
-            Node *node_else;
-            node_else = new_binary(ND_ELSE, node_true, stmt());
-            node->rhs = node_else;
-        } else {
-            node->rhs = node_true;
+            node->els = stmt();
         }
         return node;
     }
 
-    // while-expr-
-    //  `----stmt(true)--
     if (consume_kind(TK_WHILE)) {
         node = new_node(ND_WHILE);
         expect("(");
-        node->lhs = expr();
+        node->cond = expr();
         expect(")");
-        node->rhs = stmt();
+        node->lhs = stmt();
         return node;
     }
 

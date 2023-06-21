@@ -41,29 +41,28 @@ void gen_stmt(Node *node) {
         current_label_index = label_index++;
         printf("    # start if statement\n");
         printf("    # evaluate conditional expr\n");
-        gen_expr(node->lhs);
+        gen_expr(node->cond);
         printf("    pop rax\n");
         printf("    cmp rax, 0\n");
         printf("    je .Lend%d\n", current_label_index);
         printf("    # true case%d\n", current_label_index);
-        gen_stmt(node->rhs);
+        gen_stmt(node->lhs);
         printf(".Lend%d:\n", current_label_index);
         return;
     case ND_IF_ELSE:
         current_label_index = label_index++;
         printf("    # start if statement\n");
         printf("    # evaluate condition expr\n");
-        gen_expr(node->lhs);
+        gen_expr(node->cond);
         printf("    pop rax\n");
         printf("    cmp rax, 0\n");
         printf("    je .Lelse%d\n", current_label_index);
-        // elseのNodeは直接飛ばして読む
         printf("    # true case%d\n", current_label_index);
-        gen_stmt(node->rhs->lhs);
+        gen_stmt(node->lhs);
         printf("    jmp .Lend%d\n", current_label_index);
         printf(".Lelse%d:\n", current_label_index);
         printf("    # else case%d\n", current_label_index);
-        gen_stmt(node->rhs->rhs);
+        gen_stmt(node->els);
         printf(".Lend%d:\n", current_label_index);
         return;
     case ND_WHILE:
@@ -71,11 +70,11 @@ void gen_stmt(Node *node) {
         printf("    # start while statement\n");
         printf("    # evaluate condition expr\n");
         printf(".Lbegin%d:\n", current_label_index);
-        gen_expr(node->lhs);
+        gen_expr(node->cond);
         printf("    pop rax\n");
         printf("    cmp rax, 0\n");
         printf("    je .Lend%d\n", current_label_index);
-        gen_stmt(node->rhs);
+        gen_stmt(node->lhs);
         printf("    jmp .Lbegin%d\n", current_label_index);
         printf(".Lend%d:\n", current_label_index);
         return;
