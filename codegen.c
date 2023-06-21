@@ -79,6 +79,28 @@ void gen_stmt(Node *node) {
         printf("    jmp .Lbegin%d\n", current_label_index);
         printf(".Lend%d:\n", current_label_index);
         return;
+    case ND_FOR:
+        current_label_index = label_index++;
+        printf("    # start for statement\n");
+        if (node->init) {
+            gen_expr(node->init);
+            printf("    pop rax\n");
+        }
+        printf(".Lbegin%d:\n", current_label_index);
+        if (node->cond) {
+            gen_expr(node->cond);
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je .Lend%d\n", current_label_index);
+        }
+        gen_stmt(node->lhs);
+        if (node->inc) {
+            gen_expr(node->inc);
+            printf("    pop rax\n");
+        }
+        printf("    jmp .Lbegin%d\n", current_label_index);
+        printf(".Lend%d:\n", current_label_index);
+        return;
     }
 }
 

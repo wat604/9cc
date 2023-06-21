@@ -63,6 +63,11 @@ struct Node {
     Node *rhs;
     int val;        // kindがND_NUMの場合のみ使う
     int offset;     // kindがND_LVARの場合のみ使う
+
+    // "for" statement
+    Node *cond;
+    Node *init;
+    Node *inc;
 };
 
 // プロトタイプ宣言

@@ -159,8 +159,8 @@ Node *stmt() {
     // if-expr-
     //  `-stmt(true)--
     if (consume_kind(TK_IF)) {
-        expect("(");
         node = new_node(ND_IF);
+        expect("(");
         node->lhs = expr();
         expect(")");
         Node *node_true = stmt();
@@ -181,11 +181,30 @@ Node *stmt() {
     // while-expr-
     //  `----stmt(true)--
     if (consume_kind(TK_WHILE)) {
-        expect("(");
         node = new_node(ND_WHILE);
+        expect("(");
         node->lhs = expr();
         expect(")");
         node->rhs = stmt();
+        return node;
+    }
+
+    if (consume_kind(TK_FOR)) {
+        node = new_node(ND_FOR);
+        expect("(");
+        if (consume(";") == false) {
+            node->init = expr();
+            expect(";");
+        }
+        if (consume(";") == false) {
+            node->cond = expr();
+            expect(";");
+        }
+        if (consume(")") == false) {
+            node->inc = expr();
+            expect(")");
+        }
+        node->lhs = stmt();
         return node;
     }
 
