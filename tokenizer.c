@@ -59,7 +59,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (strchr("+-*/();", *p)) {
+        if (strchr("+-*/();{}", *p)) {
             cur = new_token(TK_RESERVED, cur, p++); // p++の返り値は++する前のポインタ。charの値ではない。
             cur->len = 1;
             continue;

@@ -100,6 +100,14 @@ void gen_stmt(Node *node) {
         printf("    jmp .Lbegin%d\n", current_label_index);
         printf(".Lend%d:\n", current_label_index);
         return;
+    case ND_BLOCK:
+        Node *cur;
+        cur = node->block;
+        while (cur) {
+            gen_stmt(cur);
+            cur = cur->block;
+        }
+        return;
     }
 }
 

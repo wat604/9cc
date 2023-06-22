@@ -68,5 +68,7 @@ assert 20 "x = 0; i = 0; for (; i < 10; i = i + 1) x = x + 2; return x;"
 assert 10 "for (i = 0; ; i = i + 1) return 10;"
 assert 10 "for (i = 0; i < 10; ) i = i + 1; return i;"
 
+assert 3 "{ x = 1; y = 2; z = x + y; } return z;"
+assert 2 "if (1) {y = 1; y = y + 1;} return y;"
 
 echo OK

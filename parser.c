@@ -6,6 +6,7 @@
 
 // program    = stmt*
 // stmt       = expr_stmt 
+        // | "{" stmt* "}"
         // | "if" "(" expr ")" stmt ("else" stmt)?
         // | "while" "(" expr ")" stmt
         // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
@@ -194,6 +195,17 @@ Node *stmt() {
             expect(")");
         }
         node->lhs = stmt();
+        return node;
+    }
+
+    // block
+    if (consume("{")) {
+        node = new_node(ND_BLOCK);
+        Node *cur = node;
+        while (consume("}") == false) {
+            cur->block = stmt();
+            cur = cur->block;
+        } 
         return node;
     }
 

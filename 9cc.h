@@ -38,6 +38,7 @@ typedef enum {
     ND_ELSE,    // else
     ND_WHILE,   // while
     ND_FOR,     // for
+    ND_BLOCK,   // { ... }
 } NodeKind;
 
 // 変数定義の時に
@@ -69,6 +70,9 @@ struct Node {
     Node *init;
     Node *inc;
     Node *els;
+
+    // blockの中のstmt*をリストで繋いでおく
+    Node *block;
 };
 
 // プロトタイプ宣言
