@@ -141,7 +141,13 @@ static void gen_expr(Node *node) {
         printf("    mov [rax], rdi\n");
         printf("    push rdi\n");
         return;
-
+    case ND_CALL:
+        // char label[node->len + 1];
+        // strncpy(label, node->str, node->len);
+        // label[node->len] = '\0';
+        printf("    # call function\n");
+        printf("    call %.*s\n", node->len, node->str);
+        return;
     }
 
     // 以下exprの演算処理の複数項のため再帰している

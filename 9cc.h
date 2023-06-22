@@ -39,6 +39,7 @@ typedef enum {
     ND_WHILE,   // while
     ND_FOR,     // for
     ND_BLOCK,   // { ... }
+    ND_CALL,    // func()
 } NodeKind;
 
 // 変数定義の時に
@@ -73,6 +74,9 @@ struct Node {
 
     // blockの中のstmt*をリストで繋いでおく
     Node *block;
+
+    char *str;      // call function用の関数名
+    int len;        // 関数名の長さ
 };
 
 // プロトタイプ宣言
