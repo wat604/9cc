@@ -75,8 +75,11 @@ struct Node {
     // blockの中のstmt*をリストで繋いでおく
     Node *block;
 
+    // call function
     char *str;      // call function用の関数名
     int len;        // 関数名の長さ
+    int argc;       // 引数の数
+    Node *args;     // func(arg1, arg2, ...);
 };
 
 // プロトタイプ宣言

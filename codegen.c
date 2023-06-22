@@ -17,6 +17,27 @@ static void gen_lval(Node *node) {
     printf("    push rax\n");
 }
 
+static void gen_args(int argc, Node *args) {
+        printf("    # copy args to registors\n");
+        for (Node *cur = args; cur; cur = cur->args) {
+            gen_expr(cur);
+        }
+        if (argc >= 6)
+            printf("    pop r9\n");
+        if (argc >= 5)
+            printf("    pop r8\n");
+        if (argc >= 4)
+            printf("    pop rcx\n");
+        if (argc >= 3)
+            printf("    pop rdx\n");
+        if (argc >= 2)
+            printf("    pop rsi\n");
+        if (argc >= 1)
+            printf("    pop rdi\n");
+
+        return;
+}
+
 void gen_stmt(Node *node) {
     int current_label_index;
 
@@ -142,11 +163,23 @@ static void gen_expr(Node *node) {
         printf("    push rdi\n");
         return;
     case ND_CALL:
-        // char label[node->len + 1];
-        // strncpy(label, node->str, node->len);
-        // label[node->len] = '\0';
         printf("    # call function\n");
+        if (node->argc)
+            gen_args(node->argc, node->args);
+
+        // set RSP to 16x number
+        printf("    mov rax, rsp\n"); // rax = rsp
+        printf("    and rax, 8\n");   // rax = 8 & rax
+        printf("    sub rsp, rax\n"); // rsp = rsp - 8 or rps
+        printf("    push rax\n");     // push offset for rsp
+
+        printf("    mov rax, %d\n", node->argc);
         printf("    call %.*s\n", node->len, node->str);
+        // printf("    push rax\n");       // return value is in rax?
+        printf("    pop rdi\n");     // pop the offset
+        printf("    add rsp, rdi\n");// add the offset to rsp
+        printf("    push rax\n");    // push return value
+
         return;
     }
 

@@ -3,8 +3,10 @@ assert() {
     expected="$1"
     input="$2"
 
+    cc -c -o test_func.o test_func.c
+
     ./9cc "$input" > tmp.s
-    cc -o tmp tmp.s
+    cc -o tmp tmp.s test_func.o
     ./tmp
     actual="$?"
 
@@ -81,5 +83,6 @@ assert 3 "{ x = 1; y = 2; z = x + y; } return z;"
 assert 2 "if (1) {y = 1; y = y + 1;} return y;"
 
 run_func "foo();"
+assert 3 "return myadd(1, 2);"
 
 echo OK

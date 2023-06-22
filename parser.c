@@ -20,9 +20,9 @@
 // mul        = unary ("*" unary | "/" unary)*
 // unary      = ("+" | "-")? primary
 // primary    = num 
-//              | ident ("(" ")")? 
+//              | ident ("(" args? ")")? 
 //              | "(" expr ")"
-
+// args       = expr ("," expr)*
 
 LVar *locals;
 
@@ -308,27 +308,39 @@ Node *primary() {
         return node;
     }
 
-    Token *tok = consume_ident();
-    if (tok) {
+    Token *tok_ident = consume_ident();
+    if (tok_ident) {
         // 関数呼び出しの場合
         if (consume("(")) {
-            expect(")");
             Node *node = new_node(ND_CALL);
-            node->str = tok->str;
-            node->len = tok->len;
+            node->str = tok_ident->str;
+            node->len = tok_ident->len;
+            // 引数(arguments)ありの場合
+            if (consume(")") == false) {
+                Node *cur = expr();
+                node->args = cur;
+                int argc = 1;
+                while (consume(",")) {
+                    cur->args = expr();
+                    cur = cur->args;
+                    argc += 1;
+                }
+                node->argc = argc;
+                expect(")");
+            }
             return node;
         } else {
         // 変数の場合
             Node *node = new_node(ND_LVAR);
 
-            LVar *lvar = find_lvar(tok);
+            LVar *lvar = find_lvar(tok_ident);
             if (lvar) {
                 node->offset = lvar->offset;
             } else {
                 lvar = calloc(1, sizeof(LVar));
                 lvar->next = locals;
-                lvar->name = tok->str;
-                lvar->len = tok->len;
+                lvar->name = tok_ident->str;
+                lvar->len = tok_ident->len;
                 lvar->offset = locals->offset + 8;
                 node->offset = lvar->offset;
                 locals = lvar;
