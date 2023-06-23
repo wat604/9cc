@@ -1,13 +1,13 @@
 CFLAGS=-std=c11 -g -static
 SRCS=$(wildcard *.c)
-OBJS=$(SRCS:.c=.o)
+OBJS=$(filter-out test_func.c, $(SRCS:.c=.o))
 
 9cc: $(OBJS)
 	$(CC) -o 9cc $(OBJS) $(LDFLAGS)
 
 $(OBJS): 9cc.h
 
-test: 9cc
+test: 9cc test_func.o
 	./test.sh
 
 clean:
