@@ -17,22 +17,26 @@ static void gen_lval(Node *node) {
     printf("    push rax\n");
 }
 
-static void gen_args(int argc, Node *args) {
+static void gen_args(int num_args, Arg *args) {
         printf("    # copy args to registors\n");
-        for (Node *cur = args; cur; cur = cur->args) {
-            gen_expr(cur);
+
+        for (int i = 0; i < num_args; i++) {
+            gen_expr(args->cur);
+            args = args->next;
         }
-        if (argc >= 6)
+
+
+        if (num_args >= 6)
             printf("    pop r9\n");
-        if (argc >= 5)
+        if (num_args >= 5)
             printf("    pop r8\n");
-        if (argc >= 4)
+        if (num_args >= 4)
             printf("    pop rcx\n");
-        if (argc >= 3)
+        if (num_args >= 3)
             printf("    pop rdx\n");
-        if (argc >= 2)
+        if (num_args >= 2)
             printf("    pop rsi\n");
-        if (argc >= 1)
+        if (num_args >= 1)
             printf("    pop rdi\n");
 
         return;
@@ -164,20 +168,25 @@ static void gen_expr(Node *node) {
         return;
     case ND_CALL:
         printf("    # call function\n");
-        if (node->argc)
-            gen_args(node->argc, node->args);
+        if (node->num_args > 0)
+            gen_args(node->num_args, node->args);
 
         // set RSP to 16x number
-        printf("    mov rax, rsp\n"); // rax = rsp
-        printf("    and rax, 8\n");   // rax = 8 & rax
-        printf("    sub rsp, rax\n"); // rsp = rsp - 8 or rps
-        printf("    push rax\n");     // push offset for rsp
+        // printf("    mov rax, rsp\n"); // rax = rsp
+        // printf("    and rax, 8\n");   // rax = 8 & rax
+        // printf("    sub rsp, rax\n"); // rsp = rsp - 8 or rps
+        // printf("    push rax\n");     // push offset for rsp
+        printf("    mov rax, rsp\n");
+        printf("    and rsp, -16\n");
+        printf("    push rax\n");
+        printf("    push rax\n");
 
-        printf("    mov rax, %d\n", node->argc);
+        printf("    mov rax, %d\n", node->num_args);
         printf("    call %.*s\n", node->len, node->str);
-        // printf("    push rax\n");       // return value is in rax?
-        printf("    pop rdi\n");     // pop the offset
-        printf("    add rsp, rdi\n");// add the offset to rsp
+        // printf("    pop rdi\n");     // pop the offset
+        // printf("    add rsp, rdi\n");// add the offset to rsp
+        printf("    pop rsp\n");
+
         printf("    push rax\n");    // push return value
 
         return;

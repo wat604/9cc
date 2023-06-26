@@ -315,17 +315,21 @@ Node *primary() {
             Node *node = new_node(ND_CALL);
             node->str = tok_ident->str;
             node->len = tok_ident->len;
+            int num_args = 0;
             // 引数(arguments)ありの場合
             if (consume(")") == false) {
-                Node *cur = expr();
-                node->args = cur;
-                int argc = 1;
+                Arg *head = calloc(1, sizeof(Arg));
+                Arg *arg = head;
+                arg->cur = expr();
+                num_args++;
                 while (consume(",")) {
-                    cur->args = expr();
-                    cur = cur->args;
-                    argc += 1;
+                    arg->next = calloc(1, sizeof(Arg));
+                    arg = arg->next;
+                    arg->cur = expr();
+                    num_args++;
                 }
-                node->argc = argc;
+                node->args = head;
+                node->num_args = num_args;
                 expect(")");
             }
             return node;
