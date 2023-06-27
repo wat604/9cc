@@ -4,7 +4,8 @@
 // grammer
 //
 
-// program    = stmt*
+// program = function*
+// function = ident "(" args ")" "{" stmt* "}"
 // stmt       = expr_stmt 
         // | "{" stmt* "}"
         // | "if" "(" expr ")" stmt ("else" stmt)?
@@ -48,10 +49,14 @@ Node *new_num(int val) {
 }
 
 // local variable
-Node *new_lvar(char c) {
-    Node *node = new_node(ND_LVAR);
-    node->offset = (c - 'a' + 1) * 8;
-    return node;
+LVar *new_lvar(char *name, int len) {
+    LVar *lvar = calloc(1, sizeof(LVar));
+    lvar->name = name;
+    lvar->len = len;
+    lvar->offset = locals->offset + 8;
+    lvar->next = locals;
+    locals = lvar;
+    return lvar;
 }
 
 
@@ -141,6 +146,14 @@ Node *unary();
 Node *primary();
 
 void program() {
+    // Node *node;
+    // Token *tok_fname = consume_ident();
+    // node = new_node(ND_FUNCTION);
+    // node->str = tok_fname->str;
+    // node->len = tok_fname->len;
+
+    // expect("(");
+
     LVar head;
     head.next = NULL;
     head.offset = 0;
@@ -151,7 +164,7 @@ void program() {
         code[i++] = stmt();
     }
     code[i] = NULL;
-} 
+}
 
 Node *stmt() {
     Node *node;
@@ -341,13 +354,8 @@ Node *primary() {
             if (lvar) {
                 node->offset = lvar->offset;
             } else {
-                lvar = calloc(1, sizeof(LVar));
-                lvar->next = locals;
-                lvar->name = tok_ident->str;
-                lvar->len = tok_ident->len;
-                lvar->offset = locals->offset + 8;
+                lvar = new_lvar(tok_ident->str, tok_ident->len);
                 node->offset = lvar->offset;
-                locals = lvar;
             }
             return node;
         }
@@ -357,3 +365,4 @@ Node *primary() {
     // そうでなければ数値のはず
     return new_num(expect_number());
 }
+

@@ -40,6 +40,7 @@ typedef enum {
     ND_FOR,     // for
     ND_BLOCK,   // { ... }
     ND_CALL,    // func()
+    ND_FUNCTION // function difinition
 } NodeKind;
 
 // 変数定義の時に
