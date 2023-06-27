@@ -153,6 +153,16 @@ void program() {
     // node->len = tok_fname->len;
 
     // expect("(");
+    // if (consume(")") == false) {
+    //     while (true) {
+    //         Token *tok_ident = consume_ident();
+    //         new_lvar(tok_ident->str, tok_ident->len);
+    //         if (consume(",") == false)
+    //             break;
+    //     }
+    //     expect(")");
+    // }
+    // expect("{");
 
     LVar head;
     head.next = NULL;

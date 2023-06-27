@@ -78,6 +78,8 @@ assert 10 "for (i = 0; i < 10; ) i = i + 1; return i;"
 
 assert 3 "{ x = 1; y = 2; z = x + y; } return z;"
 assert 2 "if (1) {y = 1; y = y + 1;} return y;"
+assert 2 "{ x = 1; { x = x + 1; } }"
+assert 3 "{ x = 1; { x = x + 1; { x = x + 1; } } }"
 
 run_func "foo();"
 assert 3 "return myadd(1, 2);"
