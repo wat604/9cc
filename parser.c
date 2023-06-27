@@ -351,12 +351,10 @@ Node *primary() {
             Node *node = new_node(ND_LVAR);
 
             LVar *lvar = find_lvar(tok_ident);
-            if (lvar) {
-                node->offset = lvar->offset;
-            } else {
+            if (lvar == NULL) {
                 lvar = new_lvar(tok_ident->str, tok_ident->len);
-                node->offset = lvar->offset;
             }
+            node->offset = lvar->offset;
             return node;
         }
 
