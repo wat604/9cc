@@ -51,7 +51,7 @@ typedef enum {
 // トークン型
 typedef struct Token Token;
 typedef struct Node Node;
-typedef struct Arg Arg;
+typedef struct NDList NDList;
 
 struct Token {
     TokenKind kind; // トークンの型
@@ -76,20 +76,20 @@ struct Node {
     Node *els;
 
     // blockの中のstmt*をリストで繋いでおく
-    Node *block;
+    NDList *block;
 
     // call function
     char *str;      // call function用の関数名
     int len;        // 関数名の長さ
     int num_args;       // 引数の数
-    Arg *args;     // func(arg1, arg2, ...);
+    NDList *args;     // func(arg1, arg2, ...);
 
 };
 
 // function callの時の引数をリストで保持してしておく
-struct Arg {
-    Arg *next;
-    Node *cur;
+struct NDList {
+    NDList *next;
+    Node *node;
 };
 
 // プロトタイプ宣言

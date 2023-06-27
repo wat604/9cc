@@ -17,11 +17,11 @@ static void gen_lval(Node *node) {
     printf("    push rax\n");
 }
 
-static void gen_args(int num_args, Arg *args) {
+static void gen_args(int num_args, NDList *args) {
         printf("    # copy args to registors\n");
 
         for (int i = 0; i < num_args; i++) {
-            gen_expr(args->cur);
+            gen_expr(args->node);
             args = args->next;
         }
 
@@ -126,11 +126,11 @@ void gen_stmt(Node *node) {
         printf(".Lend%d:\n", current_label_index);
         return;
     case ND_BLOCK:
-        Node *cur;
+        NDList *cur;
         cur = node->block;
-        while (cur) {
-            gen_stmt(cur);
-            cur = cur->block;
+        while (cur->node) {
+            gen_stmt(cur->node);
+            cur = cur->next;
         }
         return;
     }

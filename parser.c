@@ -226,11 +226,14 @@ Node *stmt() {
     // block
     if (consume("{")) {
         node = new_node(ND_BLOCK);
-        Node *cur = node;
+        NDList *head = calloc(1, sizeof(NDList));
+        NDList *cur = head;
         while (consume("}") == false) {
-            cur->block = stmt();
-            cur = cur->block;
+            cur->node = stmt();
+            cur->next = calloc(1, sizeof(NDList));
+            cur = cur->next;
         } 
+        node->block = head;
         return node;
     }
 
@@ -341,14 +344,14 @@ Node *primary() {
             int num_args = 0;
             // 引数(arguments)ありの場合
             if (consume(")") == false) {
-                Arg *head = calloc(1, sizeof(Arg));
-                Arg *arg = head;
-                arg->cur = expr();
+                NDList *head = calloc(1, sizeof(NDList));
+                NDList *arg = head;
+                arg->node = expr();
                 num_args++;
                 while (consume(",")) {
-                    arg->next = calloc(1, sizeof(Arg));
+                    arg->next = calloc(1, sizeof(NDList));
                     arg = arg->next;
-                    arg->cur = expr();
+                    arg->node = expr();
                     num_args++;
                 }
                 node->args = head;
